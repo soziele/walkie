@@ -8,10 +8,22 @@
         android:id="@+id/menuFragment"
         android:name="com.example.walkie.view.MenuFragment"
         android:label="fragment_menu"
-        tools:layout="@layout/fragment_menu" />
-    <activity
-        android:id="@+id/mapsActivity"
-        android:name="com.example.walkie.view.MapsActivity"
-        android:label="activity_maps"
-        tools:layout="@layout/activity_maps" />
+        tools:layout="@layout/fragment_menu" >
+        <action
+            android:id="@+id/action_menuFragment_to_calendarFragment"
+            app:destination="@id/calendarFragment" />
+        <action
+            android:id="@+id/action_menuFragment_to_achievementsFragment"
+            app:destination="@id/achievementsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.example.walkie.view.CalendarFragment"
+        android:label="fragment_calendar"
+        tools:layout="@layout/fragment_calendar" />
+    <fragment
+        android:id="@+id/achievementsFragment"
+        android:name="com.example.walkie.view.AchievementsFragment"
+        android:label="fragment_achievements"
+        tools:layout="@layout/fragment_achievements" />
 </navigation>

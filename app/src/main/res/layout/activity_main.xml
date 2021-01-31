@@ -7,8 +7,15 @@
     tools:context=".view.MainActivity">
 
     <fragment
-        android:id="@+id/fragment"
-        android:name="com.example.walkie.view.MenuFragment"
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/navigation_file"
+   />
 </androidx.constraintlayout.widget.ConstraintLayout>

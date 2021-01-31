@@ -10,6 +10,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import kotlin.random.Random
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -35,6 +36,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+        generateRoute(googleMap)
+    }
+
+    fun generateRoute(googleMap: GoogleMap){
         mMap = googleMap
 
         val xCord = 31.490127
@@ -42,8 +47,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val initialLocation = LatLng(xCord, yCord)
 
-        val xShift = (Random.nextFloat()-0.5)/10
-        val yShift = (Random.nextFloat()-0.5)/10
+        val xShift = (Random.nextFloat()-0.5)/15
+        val yShift = xShift
 
         val destination = LatLng(xCord+xShift, yCord+yShift)
 
@@ -70,12 +75,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             yMax = destination.longitude
         }
 
-        var middlePointList = arrayOfNulls<LatLng>(4)
+        var middlePointList = arrayOfNulls<LatLng>(3)
 
         for(i in middlePointList.indices){
 
-            var middlePointX = Random.nextDouble(xMin, xMax)
-            var middlePointY = Random.nextDouble(yMin, yMax)
+            var middlePointX = Random.nextDouble(xMin-0.05, xMax+0.05)
+            var middlePointY = Random.nextDouble(yMin-0.05, yMax+0.05)
 
             middlePointList[i] = LatLng(middlePointX, middlePointY)
         }
@@ -92,11 +97,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 mMap.addMarker(MarkerOptions().position(point!!))
             }
 
+            mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation))
 
         }
-
-        //mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
 }
