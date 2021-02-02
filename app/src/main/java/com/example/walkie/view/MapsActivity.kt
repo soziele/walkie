@@ -1,21 +1,42 @@
 package com.example.walkie.view
 
+import android.app.Application
+import android.content.ContentProvider
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.location.Location
+import android.location.LocationListener
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.example.walkie.R
+import com.google.android.gms.common.data.DataBufferObserver
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
+import com.maps.route.extensions.drawRouteOnMap
+import com.maps.route.model.Route
+import com.maps.route.model.TravelMode
+import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.android.synthetic.main.activity_maps.*
 import kotlin.random.Random
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
 
     private lateinit var mMap: GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var lastLocation: Location
+    private lateinit var currentLatLng: LatLng
+    private var disposable: Disposable?=null
+    private lateinit var currentRoutePoints: Array<LatLng>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +45,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
 
     /**
@@ -35,22 +57,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
-    override fun onMapReady(googleMap: GoogleMap) {
-        generateRoute(googleMap)
+
+    private fun setUpMap() {
+
+        if(ActivityCompat.checkSelfPermission(this,
+            android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+            arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            return
+        }
+        mMap.isMyLocationEnabled = true
+        fusedLocationClient.lastLocation.addOnSuccessListener(this){location->
+            if(location!=null){
+                lastLocation = location
+                currentLatLng = LatLng(location.latitude, location.longitude)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                generateRoute(currentLatLng)
+
+                onLocationChanged(lastLocation)
+            }
+        }
     }
 
-    fun generateRoute(googleMap: GoogleMap){
+    override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.setOnMarkerClickListener(this)
+        setUpMap()
 
-        val xCord = 31.490127
-        val yCord = 74.316971
+    }
 
-        val initialLocation = LatLng(xCord, yCord)
+    private fun generateRoute(initialLocation: LatLng){
 
-        val xShift = (Random.nextFloat()-0.5)/15
+        val xShift = (Random.nextFloat()-0.5)/50
         val yShift = xShift
 
-        val destination = LatLng(xCord+xShift, yCord+yShift)
+        val destination = LatLng(initialLocation.latitude+xShift, initialLocation.longitude+yShift)
 
         var xMin = 0.0
         var xMax = 0.0
@@ -77,18 +119,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         var middlePointList = arrayOfNulls<LatLng>(3)
 
+        currentRoutePoints = Array(5){i->initialLocation}
+        currentRoutePoints[0] = initialLocation
+
         for(i in middlePointList.indices){
 
-            var middlePointX = Random.nextDouble(xMin-0.05, xMax+0.05)
-            var middlePointY = Random.nextDouble(yMin-0.05, yMax+0.05)
+            var middlePointX = Random.nextDouble(xMin, xMax)
+            var middlePointY = Random.nextDouble(yMin, yMax)
 
             middlePointList[i] = LatLng(middlePointX, middlePointY)
+            currentRoutePoints[i+1] = middlePointList[i]!!
         }
+        currentRoutePoints[4] = destination
 
 
-        googleMap.run{
-            val zoom = 15.0f
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initialLocation, zoom))
+        mMap.run{
 
             mMap.addMarker(MarkerOptions().position(initialLocation))
             mMap.addMarker(MarkerOptions().position(destination))
@@ -99,7 +144,39 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation))
 
+            var firstDistance = FloatArray(1)
+            Location.distanceBetween(initialLocation.latitude, initialLocation.longitude, middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, firstDistance)
+            var secondDistance = FloatArray(1)
+            Location.distanceBetween(middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, secondDistance)
+            var thirdDistance = FloatArray(1)
+            Location.distanceBetween(middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, thirdDistance)
+            var fourthDistance = FloatArray(1)
+            Location.distanceBetween(middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, destination.latitude, destination.longitude, fourthDistance)
+            var fifthDistance = FloatArray(1)
+            Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
+            val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
+
+            Toast.makeText(applicationContext, "Length from initial location to destination: "+firstDistance[0]+"\nApproximate length of the route: "+totalDistance,Toast.LENGTH_LONG).show()
         }
     }
 
+    override fun onLocationChanged(location: Location) {
+        if(currentRoutePoints != null) {
+            for (i in currentRoutePoints.indices) {
+                if (location.latitude == currentRoutePoints[i].latitude && location.longitude == currentRoutePoints[i].longitude) {
+                    mMap.addMarker(
+                        MarkerOptions().position(currentRoutePoints[i])
+                            .title("VISITED")
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    )
+                }
+            }
+        }
+    }
+
+        companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+    }
+
+    override fun onMarkerClick(p0: Marker?) = false
 }
