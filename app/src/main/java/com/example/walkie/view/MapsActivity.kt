@@ -2,19 +2,24 @@ package com.example.walkie.view
 
 import android.app.Application
 import android.content.ContentProvider
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.icu.util.TimeUnit
 import android.location.Location
 import android.location.LocationListener
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.walkie.R
 import com.google.android.gms.common.data.DataBufferObserver
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
+import java.util.concurrent.TimeUnit.*
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -29,11 +34,13 @@ import kotlinx.android.synthetic.main.activity_maps.*
 import kotlin.random.Random
 
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
     private lateinit var currentLatLng: LatLng
     private var disposable: Disposable?=null
     private lateinit var currentRoutePoints: Array<LatLng>
@@ -58,6 +65,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
      * installed Google Play services and returned to the app.
      */
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setUpMap() {
 
         if(ActivityCompat.checkSelfPermission(this,
@@ -74,16 +82,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
                 generateRoute(currentLatLng)
 
-                onLocationChanged(lastLocation)
+                start_walking_button.setOnClickListener {
+                    locationRequest = LocationRequest().apply {
+                        interval = SECONDS.toMillis(20)
+                        fastestInterval = SECONDS.toMillis(10)
+                        maxWaitTime = MINUTES.toMillis(1)
+
+                        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                    }
+                    locationCallback = object: LocationCallback(){
+                        override fun onLocationResult(locationResult: LocationResult?) {
+                            super.onLocationResult(locationResult)
+
+                            if (locationResult?.lastLocation != null) {
+                                lastLocation = locationResult.lastLocation
+                                trackUserLocation()
+                            }
+                        }
+                    }
+                    fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                }
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
         setUpMap()
+
+        reroll_route_button.setOnClickListener {
+            mMap.clear()
+            setUpMap()
+        }
 
     }
 
@@ -142,7 +175,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 mMap.addMarker(MarkerOptions().position(point!!))
             }
 
-            mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation))
+            mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation).width(2.5f))
 
             var firstDistance = FloatArray(1)
             Location.distanceBetween(initialLocation.latitude, initialLocation.longitude, middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, firstDistance)
@@ -156,25 +189,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
             val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
 
-            Toast.makeText(applicationContext, "Length from initial location to destination: "+firstDistance[0]+"\nApproximate length of the route: "+totalDistance,Toast.LENGTH_LONG).show()
+            route_distance_textView.text = "Length from initial location to destination: "+firstDistance[0]+"\nApproximate length of the route: "+totalDistance
         }
     }
 
-    override fun onLocationChanged(location: Location) {
+    fun trackUserLocation() {
+
         if(currentRoutePoints != null) {
             for (i in currentRoutePoints.indices) {
-                if (location.latitude == currentRoutePoints[i].latitude && location.longitude == currentRoutePoints[i].longitude) {
+                if ((lastLocation.latitude < currentRoutePoints[i].latitude+0.00001 && lastLocation.latitude > currentRoutePoints[i].latitude-0.00001) && (lastLocation.longitude < currentRoutePoints[i].longitude+0.00001 && lastLocation.longitude > currentRoutePoints[i].longitude-0.00001)) {
                     mMap.addMarker(
                         MarkerOptions().position(currentRoutePoints[i])
                             .title("VISITED")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                     )
+                    val vibrator = applicationContext?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(800, VibrationEffect.DEFAULT_AMPLITUDE))
+                    }
                 }
             }
         }
+        visited_checkpoints_textView.text = "Current location: ["+lastLocation.latitude+" , "+lastLocation.longitude+"]"
     }
 
-        companion object {
+    companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
     }
 
