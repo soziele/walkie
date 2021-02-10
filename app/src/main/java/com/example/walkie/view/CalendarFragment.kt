@@ -73,10 +73,10 @@ class CalendarFragment : Fragment() {
                 container.textView.text = day.date.dayOfMonth.toString()
                 if (day.owner == DayOwner.THIS_MONTH) {
                     container.textView.setTextColor(Color.WHITE)
-                    container.textView.setBackgroundColor(Color.parseColor("#60158c"))
+                    container.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
                 } else {
                     container.textView.setTextColor(Color.LTGRAY)
-                    container.textView.setBackgroundColor(Color.parseColor("#856696"))
+                    container.textView.setBackgroundColor(Color.parseColor("#ffb3a2"))
                 }
             container.textView.setOnClickListener {
                 dayDescriptionTextView.text = "On day "+day.date+" you've walked a walk. \nMaybe, I don't know tbh,\n app still in progress."

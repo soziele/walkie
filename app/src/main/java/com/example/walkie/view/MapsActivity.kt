@@ -109,7 +109,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
         setUpMap()
 
@@ -189,7 +188,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
             val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
 
-            route_distance_textView.text = "Length from initial location to destination: "+firstDistance[0]+"\nApproximate length of the route: "+totalDistance
+            route_distance_textView.text = "Approximate length of the route: "+totalDistance
         }
     }
 
