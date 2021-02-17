@@ -12,6 +12,7 @@ import com.example.walkie.model.repositories.WalkRepository
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.util.*
 
 class WalkViewModel(application: Application): AndroidViewModel(application) {
     private val walkRepository: WalkRepository = WalkRepository(WalkieDatabase.getDatabase(application).walkDao())
@@ -20,15 +21,10 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
 
     var activeWalk: LiveData<Walk> = walkRepository.getActiveWalk
 
-    init{
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
     fun addWalk(checkpoints: Array<LatLng>, length: Double)
     {
         val visitedCheckpoints = BooleanArray(checkpoints.size) { false }
-        val walk = Walk(checkpoints = checkpoints, length = length, date = LocalDateTime.now(), visitedCheckpoints = visitedCheckpoints, id = 0, isComplete = false)
+        val walk = Walk(checkpoints = checkpoints, length = length, date = Date(), visitedCheckpoints = visitedCheckpoints, id = 0, isComplete = false)
 
         viewModelScope.launch {
             walkRepository.add(walk)
