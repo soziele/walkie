@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.walkie.R
+import com.example.walkie.viewmodel.AchievementViewModel
 import com.example.walkie.viewmodel.AchievementsListAdapter
 import com.example.walkie.viewmodel.UserViewModel
 import kotlinx.android.synthetic.main.fragment_achievements.*
@@ -46,7 +47,7 @@ class AchievementsFragment : Fragment() {
     ): View? {
 
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-        myadapter = AchievementsListAdapter(viewModel.allAchievements, viewModel)
+        myadapter = AchievementsListAdapter(viewModel.achievements, viewModel, requireContext())
         myLayoutManager= LinearLayoutManager(context)
 
         return inflater.inflate(R.layout.fragment_achievements, container, false)
@@ -60,6 +61,8 @@ class AchievementsFragment : Fragment() {
             this.adapter = myadapter
         }
     }
+
+
 
     companion object {
         /**

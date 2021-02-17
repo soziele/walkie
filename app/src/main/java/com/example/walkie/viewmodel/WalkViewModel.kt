@@ -20,6 +20,10 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
 
     var activeWalk: LiveData<Walk> = walkRepository.getActiveWalk
 
+    init{
+
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun addWalk(checkpoints: Array<LatLng>, length: Double)
     {

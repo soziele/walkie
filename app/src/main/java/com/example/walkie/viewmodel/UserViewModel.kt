@@ -1,16 +1,23 @@
 package com.example.walkie.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.*
 import com.example.walkie.R
 import com.example.walkie.model.Achievement
+import com.example.walkie.model.Walk
+import com.example.walkie.model.WalkieDatabase
+import com.example.walkie.model.repositories.AchievementRepository
+import com.example.walkie.model.repositories.WalkRepository
+import kotlinx.coroutines.launch
 
 class UserViewModel(application: Application): AndroidViewModel(application) {
-
-    var allAchievements: List<Achievement>
+    val achievements: MutableLiveData<List<Achievement>>
 
     init{
-        allAchievements = listOf(Achievement("First walk","Congrats lol",R.drawable.first_walk_unlocked,true), Achievement("First week walking","Congrats lol", R.drawable.one_week_combo_unlocked,true), Achievement("Something else","Congrats lol",R.drawable.first_walk,false))
+        achievements = MutableLiveData(
+            listOf(Achievement(id=0,title="Big foot",description="Walk a lot of kilometres.", iconPath="one_week_combo",stage=1),
+            Achievement(id=0,title="Walkaholic",description="Go on a lot of walks.", iconPath="one_week_combo",stage=1),
+                Achievement(id=0,title="Collector",description="Collect a lot of checkpoints.", iconPath="one_week_combo",stage=2),
+                Achievement(id=0,title="Combo maker",description="Go on walks a lot of days in a row.", iconPath="one_week_combo",stage=1)))
     }
 }

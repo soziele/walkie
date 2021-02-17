@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.fragment_calendar.*
 import java.sql.Time
 import java.text.DateFormat
 import java.time.Month
+import java.time.Year
 import java.time.YearMonth
 import java.time.temporal.WeekFields
 import java.util.*
@@ -61,7 +62,7 @@ class CalendarFragment : Fragment() {
             override fun create(view: View): CalendarMonthHeader = CalendarMonthHeader(view)
 
             override fun bind(container: CalendarMonthHeader, month: CalendarMonth) {
-                container.textView.text = Month.of(month.month).toString()
+                container.textView.text = Month.of(month.month).toString()+" "+ Year.of(month.year)
             }
         }
 

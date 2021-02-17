@@ -1,5 +1,9 @@
 package com.example.walkie.viewmodel
 
+import android.app.Application
+import android.content.Context
+import android.content.res.Resources
+import android.content.res.loader.ResourcesProvider
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -9,11 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.walkie.R
 import android.view.View
 import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import com.example.walkie.model.Achievement
+import kotlin.coroutines.coroutineContext
 
 
-class AchievementsListAdapter (var achievements:List<Achievement>, var viewModel:UserViewModel): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
+class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var viewModel:UserViewModel, var context: Context): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
 
     inner class AchievementsHolder(view:View):RecyclerView.ViewHolder(view)
 
@@ -33,24 +39,48 @@ class AchievementsListAdapter (var achievements:List<Achievement>, var viewModel
         var progress = holder.itemView.findViewById<TextView>(R.id.achievement_progress)
         var progressBar = holder.itemView.findViewById<ProgressBar>(R.id.achievement_progressBar)
 
-        name.text = achievements[position].title
-        description.text = achievements[position].description
-        icon.setImageResource(achievements[position].iconPath)
+        name.text = achievements.value!![position].title
+        description.text = achievements.value!![position].description
+        val iconResource = context.resources.getIdentifier(achievements.value!![position].iconPath,"drawable",context.packageName)
+        icon.setImageResource(iconResource)
 
-        if(achievements[position].received == false){
+        if(achievements.value!![position].stage == 0){
             row.setBackgroundColor(Color.parseColor("#febeb4"))
             name.setBackgroundColor(Color.parseColor("#ed8e7c"))
             description.setBackgroundColor(Color.parseColor("#ed8e7c"))
             icon.setBackgroundColor(Color.parseColor("#ed8e7c"))
             progress.setBackgroundColor(Color.parseColor("#ed8e7c"))
-            progressBar.max = 10
-            progressBar.progress = 2
         }
 
 
+        checkAchievements(position, progressBar, progress)
     }
 
+    fun checkAchievements(position: Int, progressBar: ProgressBar, progressText: TextView){
+        when(position){
+            0->{
+                progressBar.max = achievements.value!![position].stage * 10 + 5
+                progressBar.progress = 3
+            }
+            1->{
+                progressBar.max = achievements.value!![position].stage * 4 + 1
+                progressBar.progress = 1
+            }
+            2->{
+                progressBar.max = achievements.value!![position].stage * 20 + 5
+                progressBar.progress = 6
+            }
+            3->{
+                progressBar.max = achievements.value!![position].stage * 2 + 5
+                progressBar.progress = 0
+            }
+        }
+        progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
+
+    }
+
+
     override fun getItemCount(): Int {
-        return achievements.size?:0
+        return achievements.value!!.size?:0
     }
 }

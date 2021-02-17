@@ -14,7 +14,7 @@
         android:layout_margin="10dp"
         android:gravity="center"
         android:padding="10dp"
-        app:cornerRadius="50dp"
+        app:cornerRadius="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

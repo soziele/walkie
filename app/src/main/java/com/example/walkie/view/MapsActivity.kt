@@ -37,6 +37,7 @@ import kotlin.random.Random
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
+    private var difficultyLevel: Int = 1
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var locationRequest: LocationRequest
@@ -121,9 +122,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     private fun generateRoute(initialLocation: LatLng){
 
-        val xShift = (Random.nextFloat()-0.5)/50
-        val yShift = xShift
-
+        var xSign = 1
+        var ySign = 1
+        if(Random.nextBoolean()) xSign = -1
+        if(Random.nextBoolean()) ySign = -1
+        var xShift = 0.0
+        var yShift = 0.0
+        difficultyLevel = 3
+        when(difficultyLevel) {
+            1-> {
+                xShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * xSign
+                yShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * ySign
+            }
+            2-> {
+                xShift = (Random.nextFloat() - 0.5) / 10000 + 0.012 * xSign
+                yShift = (Random.nextFloat() - 0.5) / 10000 + 0.012 * ySign
+            }
+            3-> {
+                xShift = (Random.nextFloat() - 0.5) / 15000 + 0.025 * xSign
+                yShift = (Random.nextFloat() - 0.5) / 15000 + 0.025 * ySign
+            }
+        }
         val destination = LatLng(initialLocation.latitude+xShift, initialLocation.longitude+yShift)
 
         var xMin = 0.0
@@ -166,37 +185,53 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         mMap.run{
-
-            mMap.addMarker(MarkerOptions().position(initialLocation))
-            mMap.addMarker(MarkerOptions().position(destination))
-
-            for(point in middlePointList){
-                mMap.addMarker(MarkerOptions().position(point!!))
-            }
-
-            mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation).width(2.5f))
-
-            var firstDistance = FloatArray(1)
-            Location.distanceBetween(initialLocation.latitude, initialLocation.longitude, middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, firstDistance)
-            var secondDistance = FloatArray(1)
-            Location.distanceBetween(middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, secondDistance)
-            var thirdDistance = FloatArray(1)
-            Location.distanceBetween(middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, thirdDistance)
-            var fourthDistance = FloatArray(1)
-            Location.distanceBetween(middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, destination.latitude, destination.longitude, fourthDistance)
-            var fifthDistance = FloatArray(1)
-            Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
-            val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
-
-            route_distance_textView.text = "Approximate length of the route: "+totalDistance
+            arrangeMarkers(middlePointList, initialLocation, destination, xMin, xMax, yMin, yMax)
         }
+    }
+
+    fun arrangeMarkers(middlePointList: Array<LatLng?>, initialLocation: LatLng, destination: LatLng, xMin: Double, xMax: Double, yMin: Double, yMax: Double){
+
+        mMap.addMarker(MarkerOptions().position(initialLocation))
+        mMap.addMarker(MarkerOptions().position(destination))
+
+        for(point in middlePointList){
+            mMap.addMarker(MarkerOptions().position(point!!))
+        }
+
+        mMap.addPolyline(PolylineOptions().add(initialLocation, middlePointList[0], middlePointList[1], middlePointList[2], destination, initialLocation).width(2.5f))
+
+        var firstDistance = FloatArray(1)
+        Location.distanceBetween(initialLocation.latitude, initialLocation.longitude, middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, firstDistance)
+        var secondDistance = FloatArray(1)
+        Location.distanceBetween(middlePointList[0]!!.latitude, middlePointList[0]!!.longitude, middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, secondDistance)
+        var thirdDistance = FloatArray(1)
+        Location.distanceBetween(middlePointList[1]!!.latitude, middlePointList[1]!!.longitude, middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, thirdDistance)
+        var fourthDistance = FloatArray(1)
+        Location.distanceBetween(middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, destination.latitude, destination.longitude, fourthDistance)
+        var fifthDistance = FloatArray(1)
+        Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
+        val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
+
+        if((difficultyLevel==1 && (totalDistance<500 || totalDistance>1000)||(difficultyLevel==2 && (totalDistance<4500 || totalDistance>5000))||(difficultyLevel==3 && (totalDistance<9500 || totalDistance>10500)))){
+            for(i in middlePointList.indices){
+
+                var middlePointX = Random.nextDouble(xMin, xMax)
+                var middlePointY = Random.nextDouble(yMin, yMax)
+
+                middlePointList[i] = LatLng(middlePointX, middlePointY)
+                currentRoutePoints[i+1] = middlePointList[i]!!
+            }
+            mMap.clear()
+            arrangeMarkers(middlePointList, initialLocation, destination, xMin, xMax, yMin, yMax)
+        }
+        else route_distance_textView.text = "Approximate length of the route: "+totalDistance+"\nDistance to destination: "+fifthDistance[0]
     }
 
     fun trackUserLocation() {
 
         if(currentRoutePoints != null) {
             for (i in currentRoutePoints.indices) {
-                if ((lastLocation.latitude < currentRoutePoints[i].latitude+0.00001 && lastLocation.latitude > currentRoutePoints[i].latitude-0.00001) && (lastLocation.longitude < currentRoutePoints[i].longitude+0.00001 && lastLocation.longitude > currentRoutePoints[i].longitude-0.00001)) {
+                if ((lastLocation.latitude < currentRoutePoints[i].latitude+0.0002 && lastLocation.latitude > currentRoutePoints[i].latitude-0.0002) && (lastLocation.longitude < currentRoutePoints[i].longitude+0.0002 && lastLocation.longitude > currentRoutePoints[i].longitude-0.0002)) {
                     mMap.addMarker(
                         MarkerOptions().position(currentRoutePoints[i])
                             .title("VISITED")
