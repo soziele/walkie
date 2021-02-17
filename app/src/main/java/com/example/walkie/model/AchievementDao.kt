@@ -1,9 +1,7 @@
 package com.example.walkie.model
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Dao
 interface AchievementDao {
@@ -12,4 +10,10 @@ interface AchievementDao {
 
     @Delete
     suspend fun delete(achievement: Achievement)
+
+    @Query("SELECT * FROM achievement")
+    fun getAll(): LiveData<List<Achievement>>
+
+    @Update(entity = Achievement::class)
+    fun update(achievement: Achievement)
 }

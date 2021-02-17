@@ -9,6 +9,6 @@ class Achievement (
     @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name="title") val title: String,
     @ColumnInfo(name="description") val description: String,
-    @ColumnInfo(name="icon_path") var iconPath: Int,
-    @ColumnInfo(name="received") var received: Boolean
+    @ColumnInfo(name="icon_path") var iconPath: String,
+    @ColumnInfo(name="stage") var stage: Int = 0
 )
