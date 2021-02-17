@@ -1,9 +1,17 @@
 package com.example.walkie.model
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.android.gms.maps.model.LatLng
-import java.sql.Date
+import java.time.LocalDateTime
 
-
-class Walk (val date: Date, val checkPoints: Array<LatLng>, var visitedCheckPoints: Array<Boolean>, var length: Double){
-}
-
+@Entity(tableName="walk")
+class Walk(
+        @PrimaryKey(autoGenerate = true) val id: Int,
+        @ColumnInfo(name= "date") val date: LocalDateTime,
+        @ColumnInfo(name="checkpoints") val checkpoints: Array<LatLng>,
+        @ColumnInfo(name="visited_checkpoints") val visitedCheckpoints: BooleanArray,
+        @ColumnInfo(name="length") val length: Double,
+        @ColumnInfo(name="is_complete") var isComplete: Boolean = false
+    )
