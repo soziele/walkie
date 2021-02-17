@@ -5,7 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.walkie.R
+import com.example.walkie.viewmodel.AchievementsListAdapter
+import com.example.walkie.viewmodel.UserViewModel
+import kotlinx.android.synthetic.main.fragment_achievements.*
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,6 +27,10 @@ class AchievementsFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private lateinit var myadapter: AchievementsListAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var myLayoutManager: LinearLayoutManager
+    private lateinit var viewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +44,21 @@ class AchievementsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
+
+        viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
+        myadapter = AchievementsListAdapter(viewModel.allAchievements, viewModel)
+        myLayoutManager= LinearLayoutManager(context)
+
         return inflater.inflate(R.layout.fragment_achievements, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        recyclerView = achievements_list.apply {
+            this.layoutManager = myLayoutManager
+            this.adapter = myadapter
+        }
     }
 
     companion object {

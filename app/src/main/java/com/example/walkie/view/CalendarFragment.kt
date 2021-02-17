@@ -1,16 +1,26 @@
 package com.example.walkie.view
 
-import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.example.walkie.R
+import com.kizitonwose.calendarview.model.CalendarDay
+import com.kizitonwose.calendarview.model.CalendarMonth
+import com.kizitonwose.calendarview.model.DayOwner
+import com.kizitonwose.calendarview.model.ScrollMode
+import com.kizitonwose.calendarview.ui.DayBinder
+import com.kizitonwose.calendarview.ui.MonthHeaderFooterBinder
 import kotlinx.android.synthetic.main.fragment_calendar.*
+import java.sql.Time
+import java.text.DateFormat
+import java.time.Month
+import java.time.YearMonth
+import java.time.temporal.WeekFields
 import java.util.*
-import 	java.util.Calendar.Builder
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -36,8 +46,8 @@ class CalendarFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_calendar, container, false)
@@ -47,10 +57,40 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        walkingCalendar.setOnDateChangeListener{ view, year, month, dayOfMonth ->
-            val msg = "On " + dayOfMonth + "/" + (month + 1) + "/" + year+" you've walked a walk.\nPerhaps. I don't know yet\nApp still in progress"
-            dayDescriptionTextView.text = msg
+        walkingCalendar.monthHeaderBinder = object: MonthHeaderFooterBinder<CalendarMonthHeader>{
+            override fun create(view: View): CalendarMonthHeader = CalendarMonthHeader(view)
+
+            override fun bind(container: CalendarMonthHeader, month: CalendarMonth) {
+                container.textView.text = Month.of(month.month).toString()
+            }
         }
+
+        walkingCalendar.dayBinder = object : DayBinder<DayViewContainer> {
+            // Called only when a new container is needed.
+            override fun create(view: View) = DayViewContainer(view)
+            // Called every time we need to reuse a container.
+            override fun bind(container: DayViewContainer, day: CalendarDay) {
+                container.textView.text = day.date.dayOfMonth.toString()
+                if (day.owner == DayOwner.THIS_MONTH) {
+                    container.textView.setTextColor(Color.WHITE)
+                    container.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
+                } else {
+                    container.textView.setTextColor(Color.LTGRAY)
+                    container.textView.setBackgroundColor(Color.parseColor("#ffb3a2"))
+                }
+            container.textView.setOnClickListener {
+                dayDescriptionTextView.text = "On day "+day.date+" you've walked a walk. \nMaybe, I don't know tbh,\n app still in progress."
+                walkingCalendar.notifyDateChanged(day.date)
+            }
+            }
+        }
+        val currentMonth = YearMonth.now()
+        val firstMonth = currentMonth.minusMonths(24)
+        val lastMonth = currentMonth.plusMonths(24)
+        val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+        walkingCalendar.setup(firstMonth, lastMonth, firstDayOfWeek)
+        walkingCalendar.scrollToMonth(currentMonth)
+        walkingCalendar.scrollMode = ScrollMode.PAGED
 
     }
 
