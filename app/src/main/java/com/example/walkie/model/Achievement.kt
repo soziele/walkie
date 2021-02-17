@@ -12,3 +12,4 @@ class Achievement (
     @ColumnInfo(name="icon_path") var iconPath: String,
     @ColumnInfo(name="stage") var stage: Int = 0
 )
+
