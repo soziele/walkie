@@ -7,15 +7,24 @@
     tools:context=".view.MainActivity">
 
     <fragment
+        android:id="@+id/app_bar_fragment"
+        android:name="com.example.walkie.AppBarFragment"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <fragment
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:defaultNavHost="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/navigation_file"
-   />
+        app:layout_constraintTop_toBottomOf="@+id/app_bar_fragment"
+        app:navGraph="@navigation/navigation_file" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
