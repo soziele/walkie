@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,6 +40,7 @@ class AchievementsFragment : Fragment() {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
     }
 
     override fun onCreateView(
@@ -47,8 +49,12 @@ class AchievementsFragment : Fragment() {
     ): View? {
 
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-        myadapter = AchievementsListAdapter(viewModel.achievements, viewModel, requireContext())
+        myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, requireContext())
         myLayoutManager= LinearLayoutManager(context)
+
+        viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t->
+            myadapter.notifyDataSetChanged()
+        })
 
         return inflater.inflate(R.layout.fragment_achievements, container, false)
     }

@@ -21,7 +21,7 @@ class Converters {
 
     @TypeConverter
     fun fromCheckpoints(value: String): Array<LatLng> {
-        val sType = object : TypeToken<List<LatLng>>() { }.type
+        val sType = object : TypeToken<Array<LatLng>>() { }.type
         return Gson().fromJson<Array<LatLng>>(value, sType)
     }
 

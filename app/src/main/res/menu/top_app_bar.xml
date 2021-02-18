@@ -2,12 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/option_1"
-        android:title="@string/option_1" />
+        android:title="@string/option_1_change_difficulty" />
 
     <item android:id="@+id/option_2"
-        android:title="@string/option_2" />
+        android:title="@string/option_2_reset_progress" />
 
     <item android:id="@+id/option_3"
-        android:title="@string/option_3" />
+        android:title="@string/option_3_About" />
 
 </menu>
