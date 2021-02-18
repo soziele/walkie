@@ -32,12 +32,12 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
 
     override fun onBindViewHolder(holder: AchievementsHolder, position: Int) {
 
-        var name = holder.itemView.findViewById<TextView>(R.id.achievement_name)
-        var description = holder.itemView.findViewById<TextView>(R.id.achievement_description)
-        var icon = holder.itemView.findViewById<ImageView>(R.id.achievement_icon)
-        var row = holder.itemView.findViewById<LinearLayout>(R.id.achievement_row)
-        var progress = holder.itemView.findViewById<TextView>(R.id.achievement_progress)
-        var progressBar = holder.itemView.findViewById<ProgressBar>(R.id.achievement_progressBar)
+        val name = holder.itemView.findViewById<TextView>(R.id.achievement_name)
+        val description = holder.itemView.findViewById<TextView>(R.id.achievement_description)
+        val icon = holder.itemView.findViewById<ImageView>(R.id.achievement_icon)
+        val row = holder.itemView.findViewById<LinearLayout>(R.id.achievement_row)
+        val progress = holder.itemView.findViewById<TextView>(R.id.achievement_progress)
+        val progressBar = holder.itemView.findViewById<ProgressBar>(R.id.achievement_progressBar)
 
         name.text = achievements.value!![position].title
         description.text = achievements.value!![position].description
@@ -81,6 +81,6 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
 
 
     override fun getItemCount(): Int {
-        return achievements.value!!.size?:0
+        return achievements.value?.size?:0
     }
 }

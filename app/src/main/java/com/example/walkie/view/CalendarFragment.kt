@@ -1,12 +1,18 @@
 package com.example.walkie.view
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.observe
 import com.example.walkie.R
+import com.example.walkie.model.Walk
+import com.example.walkie.viewmodel.UserViewModel
 import com.kizitonwose.calendarview.model.CalendarDay
 import com.kizitonwose.calendarview.model.CalendarMonth
 import com.kizitonwose.calendarview.model.DayOwner
@@ -19,6 +25,7 @@ import java.text.DateFormat
 import java.time.Month
 import java.time.Year
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.temporal.WeekFields
 import java.util.*
 
@@ -37,6 +44,12 @@ class CalendarFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private lateinit var viewModel: UserViewModel
+    private var walks: List<Walk>? = null
+    private var selected: DayViewContainer? = null
+    private var previousSelected: DayViewContainer? = null
+    private var previousDay: CalendarDay? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,12 +57,17 @@ class CalendarFragment : Fragment() {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
+
+        viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
+
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_calendar, container, false)
     }
@@ -58,41 +76,86 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        walkingCalendar.monthHeaderBinder = object: MonthHeaderFooterBinder<CalendarMonthHeader>{
-            override fun create(view: View): CalendarMonthHeader = CalendarMonthHeader(view)
+        viewModel.walkViewModel.walks.observe(viewLifecycleOwner, androidx.lifecycle.Observer { liveDataWalks->
+            this.walks = liveDataWalks
 
-            override fun bind(container: CalendarMonthHeader, month: CalendarMonth) {
-                container.textView.text = Month.of(month.month).toString()+" "+ Year.of(month.year)
-            }
-        }
+            walkingCalendar.monthHeaderBinder = object: MonthHeaderFooterBinder<CalendarMonthHeader>{
+                override fun create(view: View): CalendarMonthHeader = CalendarMonthHeader(view)
 
-        walkingCalendar.dayBinder = object : DayBinder<DayViewContainer> {
-            // Called only when a new container is needed.
-            override fun create(view: View) = DayViewContainer(view)
-            // Called every time we need to reuse a container.
-            override fun bind(container: DayViewContainer, day: CalendarDay) {
-                container.textView.text = day.date.dayOfMonth.toString()
-                if (day.owner == DayOwner.THIS_MONTH) {
-                    container.textView.setTextColor(Color.WHITE)
-                    container.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
-                } else {
-                    container.textView.setTextColor(Color.LTGRAY)
-                    container.textView.setBackgroundColor(Color.parseColor("#ffb3a2"))
+                override fun bind(container: CalendarMonthHeader, month: CalendarMonth) {
+                    container.textView.text = Month.of(month.month).toString()+" "+ Year.of(month.year)
                 }
-            container.textView.setOnClickListener {
-                dayDescriptionTextView.text = "On day "+day.date+" you've walked a walk. \nMaybe, I don't know tbh,\n app still in progress."
-                walkingCalendar.notifyDateChanged(day.date)
             }
+
+            walkingCalendar.dayBinder = object : DayBinder<DayViewContainer> {
+
+                // Called only when a new container is needed.
+                override fun create(view: View) = DayViewContainer(view)
+
+                // Called every time we need to reuse a container.
+                override fun bind(container: DayViewContainer, day: CalendarDay) {
+                    viewModel.walkViewModel.walks.observe(viewLifecycleOwner, androidx.lifecycle.Observer { t->
+
+                    })
+                    container.textView.text = day.date.dayOfMonth.toString()
+                    if (day.owner == DayOwner.THIS_MONTH) {
+                        container.textView.setTextColor(Color.WHITE)
+                        container.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
+                        container.textView.setOnClickListener {
+                            //walkingCalendar.notifyDateChanged(day.date)
+                            daySelected(container, day)
+                        }
+                    } else {
+                        container.textView.setTextColor(Color.LTGRAY)
+                        container.textView.setBackgroundColor(Color.parseColor("#ffb3a2"))
+                    }
+
+                    for(walk in walks!!){
+                        if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day.date.toString() && walk.isComplete){
+                            container.textView.setBackgroundColor(Color.parseColor("#00e68a"))
+                        }
+                    }
+                }
+            }
+            val currentMonth = YearMonth.now()
+            val firstMonth = currentMonth.minusMonths(24)
+            val lastMonth = currentMonth.plusMonths(24)
+            val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+            walkingCalendar.setup(firstMonth, lastMonth, firstDayOfWeek)
+            walkingCalendar.scrollToMonth(currentMonth)
+            walkingCalendar.scrollMode = ScrollMode.PAGED
+        })
+    }
+
+
+    @SuppressLint("SetTextI18n")
+    private fun daySelected(container: DayViewContainer, day: CalendarDay){
+        if(selected != null) previousSelected = selected
+        selected = container
+        selected!!.textView.setBackgroundColor(Color.parseColor("#e6b800"))
+
+
+        dayDescriptionTextView.text = "You haven't have a walk on that day."
+        for(walk in walks!!){
+            if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day!!.date.toString() && walk.isComplete){
+                dayDescriptionTextView.text = "On "+day.date.dayOfMonth+" of "+day.date.month.name.toLowerCase()+" "+day.date.year+" you've finished a "+walk.length+" kilometres long walk. Congratulations!"
             }
         }
-        val currentMonth = YearMonth.now()
-        val firstMonth = currentMonth.minusMonths(24)
-        val lastMonth = currentMonth.plusMonths(24)
-        val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
-        walkingCalendar.setup(firstMonth, lastMonth, firstDayOfWeek)
-        walkingCalendar.scrollToMonth(currentMonth)
-        walkingCalendar.scrollMode = ScrollMode.PAGED
 
+
+
+
+
+
+        if(previousSelected != null) {
+            previousSelected!!.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
+            for(walk in walks!!){
+                if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == previousDay!!.date.toString() && walk.isComplete){
+                    previousSelected!!.textView.setBackgroundColor(Color.parseColor("#00e68a"))
+                }
+            }
+        }
+        previousDay = day
     }
 
     companion object {
