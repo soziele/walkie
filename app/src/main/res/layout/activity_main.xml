@@ -8,12 +8,13 @@
 
     <fragment
         android:id="@+id/app_bar_fragment"
-        android:name="com.example.walkie.AppBarFragment"
+        android:name="com.example.walkie.view.AppBarFragment"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout="@layout/fragment_app_bar" />
 
     <fragment
         android:id="@+id/nav_host_fragment"

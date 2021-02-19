@@ -11,6 +11,8 @@ class WalkRepository(private val walkDao: WalkDao) {
 
     suspend fun delete(walk: Walk) = walkDao.delete(walk)
 
+    suspend fun update(walk: Walk) = walkDao.update(walk)
+
     val getActiveWalk: LiveData<Walk> = walkDao.getActive()
 
     fun completeWalk(walk: Walk) = walkDao.finishWalk(walkId = walk.id)

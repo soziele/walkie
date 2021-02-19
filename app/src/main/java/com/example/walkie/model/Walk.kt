@@ -13,6 +13,6 @@ class Walk(
         @ColumnInfo(name= "date") val date: Date,
         @ColumnInfo(name="checkpoints") val checkpoints: Array<LatLng>,
         @ColumnInfo(name="visited_checkpoints") val visitedCheckpoints: BooleanArray,
-        @ColumnInfo(name="length") val length: Double,
+        @ColumnInfo(name="length") var length: Double,
         @ColumnInfo(name="is_complete") var isComplete: Boolean = false
     )

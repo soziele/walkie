@@ -1,10 +1,7 @@
 package com.example.walkie.model
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface WalkDao {
@@ -14,12 +11,16 @@ interface WalkDao {
     @Delete
     suspend fun delete(walk: Walk)
 
+    @Update
+    suspend fun update(walk: Walk)
+
     @Query("SELECT * FROM walk")
     fun getAll(): LiveData<List<Walk>>
 
-    @Query("SELECT * FROM walk WHERE is_complete = 0")
+    @Query("SELECT * FROM walk WHERE is_complete = 0 AND id=(SELECT max(id) FROM walk)")
     fun getActive(): LiveData<Walk>
 
     @Query("UPDATE walk SET is_complete = 1 WHERE id = :walkId")
     fun finishWalk(walkId: Int)
+
 }

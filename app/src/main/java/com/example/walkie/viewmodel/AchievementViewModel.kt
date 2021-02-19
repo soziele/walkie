@@ -16,6 +16,13 @@ class AchievementViewModel(application: Application): AndroidViewModel(applicati
     init{
         achievementRepository = AchievementRepository(WalkieDatabase.getDatabase(application).achievementDao())
         achievements = achievementRepository.getAll
+
+    }
+
+    fun addAchievement(achievement: Achievement){
+        viewModelScope.launch {
+            achievementRepository.add(achievement)
+        }
     }
 
     fun transitionToNextStage(achievement: Achievement)

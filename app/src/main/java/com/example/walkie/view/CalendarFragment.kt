@@ -28,6 +28,7 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.WeekFields
 import java.util.*
+import kotlin.math.roundToInt
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -61,8 +62,8 @@ class CalendarFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
 
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
@@ -138,7 +139,7 @@ class CalendarFragment : Fragment() {
         dayDescriptionTextView.text = "You haven't have a walk on that day."
         for(walk in walks!!){
             if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day!!.date.toString() && walk.isComplete){
-                dayDescriptionTextView.text = "On "+day.date.dayOfMonth+" of "+day.date.month.name.toLowerCase()+" "+day.date.year+" you've finished a "+walk.length+" kilometres long walk. Congratulations!"
+                dayDescriptionTextView.text = "On "+day.date.dayOfMonth+" of "+day.date.month.name.toLowerCase()+" "+day.date.year+" you've finished a "+(walk.length/1000).toFloat()+" kilometers long walk. Congratulations!"
             }
         }
 
@@ -170,11 +171,11 @@ class CalendarFragment : Fragment() {
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            CalendarFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                CalendarFragment().apply {
+                    arguments = Bundle().apply {
+                        putString(ARG_PARAM1, param1)
+                        putString(ARG_PARAM2, param2)
+                    }
                 }
-            }
     }
 }

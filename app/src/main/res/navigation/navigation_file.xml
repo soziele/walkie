@@ -20,10 +20,26 @@
         android:id="@+id/calendarFragment"
         android:name="com.example.walkie.view.CalendarFragment"
         android:label="fragment_calendar"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_calendar" >
+        <action
+            android:id="@+id/action_calendarFragment_to_menuFragment"
+            app:destination="@id/menuFragment" />
+    </fragment>
     <fragment
         android:id="@+id/achievementsFragment"
         android:name="com.example.walkie.view.AchievementsFragment"
         android:label="fragment_achievements"
-        tools:layout="@layout/fragment_achievements" />
+        tools:layout="@layout/fragment_achievements" >
+        <action
+            android:id="@+id/action_achievementsFragment_to_menuFragment"
+            app:destination="@id/menuFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/appBarFragment"
+        android:name="com.example.walkie.view.AppBarFragment"
+        android:label="AppBarFragment" >
+        <action
+            android:id="@+id/action_appBarFragment_to_menuFragment"
+            app:destination="@id/menuFragment" />
+    </fragment>
 </navigation>
