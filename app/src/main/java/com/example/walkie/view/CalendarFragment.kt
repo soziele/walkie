@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
 import com.example.walkie.R
 import com.example.walkie.model.Walk
+import com.example.walkie.model.enums.WalkState
+import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
 import com.kizitonwose.calendarview.model.CalendarDay
 import com.kizitonwose.calendarview.model.CalendarMonth
@@ -51,7 +53,6 @@ class CalendarFragment : Fragment() {
     private var previousSelected: DayViewContainer? = null
     private var previousDay: CalendarDay? = null
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -67,7 +68,6 @@ class CalendarFragment : Fragment() {
     ): View? {
 
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_calendar, container, false)
@@ -112,7 +112,7 @@ class CalendarFragment : Fragment() {
                     }
 
                     for(walk in walks!!){
-                        if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day.date.toString() && walk.isComplete){
+                        if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day.date.toString() && walk.state == WalkState.Completed){
                             container.textView.setBackgroundColor(Color.parseColor("#00e68a"))
                         }
                     }
@@ -138,7 +138,7 @@ class CalendarFragment : Fragment() {
 
         dayDescriptionTextView.text = "You haven't have a walk on that day."
         for(walk in walks!!){
-            if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day!!.date.toString() && walk.isComplete){
+            if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == day!!.date.toString() && walk.state == WalkState.Completed){
                 dayDescriptionTextView.text = "On "+day.date.dayOfMonth+" of "+day.date.month.name.toLowerCase()+" "+day.date.year+" you've finished a "+(walk.length/1000).toFloat()+" kilometers long walk. Congratulations!"
             }
         }
@@ -151,7 +151,7 @@ class CalendarFragment : Fragment() {
         if(previousSelected != null) {
             previousSelected!!.textView.setBackgroundColor(Color.parseColor("#f46e5f"))
             for(walk in walks!!){
-                if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == previousDay!!.date.toString() && walk.isComplete){
+                if(walk.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString() == previousDay!!.date.toString() && walk.state == WalkState.Completed){
                     previousSelected!!.textView.setBackgroundColor(Color.parseColor("#00e68a"))
                 }
             }

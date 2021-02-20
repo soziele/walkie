@@ -29,7 +29,7 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
     fun addWalk(checkpoints: Array<LatLng>, length: Double)
     {
         val visitedCheckpoints = BooleanArray(checkpoints.size) { false }
-        val walk = Walk(checkpoints = checkpoints, length = length, date = Date(), visitedCheckpoints = visitedCheckpoints, id = 0, isComplete = false)
+        val walk = Walk(checkpoints = checkpoints, length = length, date = Date(), visitedCheckpoints = visitedCheckpoints, id = 0)
 
         viewModelScope.launch {
             walkRepository.add(walk)
@@ -43,10 +43,10 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun completeWalk(walk: Walk)
+    fun completeWalk(walk: Walk, distance: Double)
     {
         viewModelScope.launch {
-            walkRepository.completeWalk(walk)
+            walkRepository.completeWalk(walk, distance)
         }
     }
 

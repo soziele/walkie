@@ -17,10 +17,10 @@ interface WalkDao {
     @Query("SELECT * FROM walk")
     fun getAll(): LiveData<List<Walk>>
 
-    @Query("SELECT * FROM walk WHERE is_complete = 0 AND id=(SELECT max(id) FROM walk)")
+    @Query("SELECT * FROM walk WHERE state = 0")
     fun getActive(): LiveData<Walk>
 
-    @Query("UPDATE walk SET is_complete = 1 WHERE id = :walkId")
-    fun finishWalk(walkId: Int)
+    @Query("UPDATE walk SET state = 1, distance_traveled = :distance WHERE id = :walkId")
+    fun finishWalk(walkId: Int, distance: Double)
 
 }

@@ -62,10 +62,10 @@ class MenuFragment : Fragment() {
             startActivity(Intent(this.activity, MapsActivity::class.java))
         }
 
-        //testing
-        //val testArray = arrayOf(LatLng(1.0, 2.0), LatLng(3.0, 4.0), LatLng(5.0, 6.0))
-        //viewModel.addWalk(testArray, 4.0)
-        //testing
+//        testing
+        val testArray = arrayOf(LatLng(1.0, 2.0), LatLng(3.0, 4.0), LatLng(5.0, 6.0))
+        viewModel.addWalk(testArray, 4.0)
+//        testing
 
         openCalendarButton.setOnClickListener { view -> view.findNavController().navigate(R.id.action_menuFragment_to_calendarFragment) }
         openAchievementsButton.setOnClickListener { view -> view.findNavController().navigate(R.id.action_menuFragment_to_achievementsFragment) }
