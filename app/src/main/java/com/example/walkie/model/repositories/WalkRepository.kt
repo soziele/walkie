@@ -15,5 +15,5 @@ class WalkRepository(private val walkDao: WalkDao) {
 
     val getActiveWalk: LiveData<Walk> = walkDao.getActive()
 
-    fun completeWalk(walk: Walk) = walkDao.finishWalk(walkId = walk.id)
+    fun completeWalk(walk: Walk, distance: Double) = walkDao.finishWalk(walkId = walk.id, distance = distance)
 }

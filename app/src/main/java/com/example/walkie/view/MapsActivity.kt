@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.walkie.R
 import com.example.walkie.model.Walk
+import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
 import com.google.android.gms.common.data.DataBufferObserver
 import com.google.android.gms.location.*
@@ -55,6 +56,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var viewModel: UserViewModel
     private var finalLength: Double = 0.0
 
+    //test
+    private lateinit var stateViewModel: StateViewModel
+    //test
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -64,6 +69,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         viewModel= ViewModelProvider(this).get(UserViewModel::class.java)
+
+        //test
+        stateViewModel = ViewModelProvider(this).get(StateViewModel::class.java)
+        //test
     }
 
     /**
@@ -275,7 +284,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
             }
         }
-        finalLength += getMomentaryDistance(currentLocation)
+
+        val dist = getMomentaryDistance(currentLocation)
+        finalLength += dist
+        stateViewModel.addDistanceTraveled(dist)
 
         viewModel.walkViewModel.activeWalk.value!!.length = finalLength
         viewModel.walkViewModel.updateWalk(activeWalk)
@@ -290,7 +302,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         if(currentVisitedPoints.all { visited -> visited }){
-            viewModel.walkViewModel.completeWalk(activeWalk)
+            viewModel.walkViewModel.completeWalk(activeWalk, finalLength)
             route_distance_textView.text = activeWalk.id.toString()
         }
         lastLocation = currentLocation

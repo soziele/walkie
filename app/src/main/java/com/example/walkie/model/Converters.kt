@@ -1,11 +1,10 @@
-package com.example.teacherhelper.model
+package com.example.walkie.model
 
 import androidx.room.TypeConverter
-import com.google.android.gms.common.util.JsonUtils
+import com.example.walkie.model.enums.WalkState
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import org.json.JSONStringer
 import java.util.*
 
 class Converters {
@@ -40,4 +39,10 @@ class Converters {
     fun toVisited(value: BooleanArray): String {
         return Gson().toJson(value)
     }
+
+    @TypeConverter
+    fun toWalkState(value: Int) = enumValues<WalkState>()[value]
+
+    @TypeConverter
+    fun fromWalkState(value: WalkState) = value.ordinal
 }
