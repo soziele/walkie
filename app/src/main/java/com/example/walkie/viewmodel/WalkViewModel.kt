@@ -10,19 +10,21 @@ import com.example.walkie.model.Walk
 import com.example.walkie.model.WalkieDatabase
 import com.example.walkie.model.repositories.WalkRepository
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.time.LocalDateTime
 import java.util.*
 
 class WalkViewModel(application: Application): AndroidViewModel(application) {
-    private val walkRepository: WalkRepository
+    private var walkRepository: WalkRepository
 
-    val walks: LiveData<List<Walk>>
+    var walks: LiveData<List<Walk>>
 
-    var activeWalk: LiveData<Walk>
+    var activeWalk: Walk
     init{
-        walkRepository = WalkRepository(WalkieDatabase.getDatabase(application).walkDao())
-        walks = walkRepository.getAll
+
+            walkRepository = WalkRepository(WalkieDatabase.getDatabase(application).walkDao())
+            walks = walkRepository.getAll
+
         activeWalk = walkRepository.getActiveWalk
     }
 
@@ -31,10 +33,26 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
         val visitedCheckpoints = BooleanArray(checkpoints.size) { false }
         val walk = Walk(checkpoints = checkpoints, length = length, date = Date(), visitedCheckpoints = visitedCheckpoints, id = 0)
 
-        viewModelScope.launch {
+        runBlocking {
             walkRepository.add(walk)
-            walkRepository.getActiveWalk
         }
+
+    }
+
+    fun getAllWalks(){
+        walks = walkRepository.getAll
+    }
+
+    fun getActiveWalk(){
+        runBlocking {
+            val count1: Deferred<Unit> = async(context = Dispatchers.IO) {walkRepository = WalkRepository(WalkieDatabase.getDatabase(this@WalkViewModel.getApplication()).walkDao())}
+            val count2: Deferred<Unit> = async(context = Dispatchers.IO) {walks = walkRepository.getAll}
+
+            count1.await()
+            count2.await()
+            activeWalk = walkRepository.getActiveWalk
+        }
+
     }
 
     fun updateWalk(walk: Walk){
@@ -47,6 +65,12 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
     {
         viewModelScope.launch {
             walkRepository.completeWalk(walk, distance)
+        }
+    }
+
+    fun cancelWalk(walk: Walk){
+        runBlocking {
+            walkRepository.cancelWalk(walk)
         }
     }
 

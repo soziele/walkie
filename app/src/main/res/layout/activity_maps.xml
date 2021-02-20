@@ -65,7 +65,7 @@
         android:layout_marginTop="5dp"
         android:background="#F6ECA2"
         android:padding="8dp"
-        android:text="Visited checkpoints: 0/4"
+        android:text="Visited checkpoints: 0/5"
         android:textAlignment="center"
         android:textColor="#404040" />
 

@@ -37,6 +37,10 @@ import com.maps.route.model.TravelMode
 import io.reactivex.rxjava3.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.fragment_app_bar.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -54,6 +58,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var currentRoutePoints: Array<LatLng>
     private lateinit var currentVisitedPoints: Array<Boolean>
     private lateinit var viewModel: UserViewModel
+    private var estimatedLength: Double = 0.0
     private var finalLength: Double = 0.0
 
     //test
@@ -89,10 +94,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private fun setUpMap() {
 
         if(ActivityCompat.checkSelfPermission(this,
-            android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-            arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
-            onBackPressed()
+                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
         }
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(this){location->
@@ -102,11 +106,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
                 generateRoute(currentLatLng)
 
-                viewModel.walkViewModel.activeWalk.observe(this, Observer { activeWalk ->
-
                     start_walking_button.setOnClickListener {
 
-                        viewModel.walkViewModel.addWalk(currentRoutePoints, 0.0)
+                        runBlocking {
+                                viewModel.walkViewModel.addWalk(currentRoutePoints, estimatedLength)
+                                viewModel.walkViewModel.cancelWalk(viewModel.walkViewModel.activeWalk)
+
+                            viewModel.walkViewModel.getActiveWalk()
+                        }
 
                         locationRequest = LocationRequest().apply {
                             interval = SECONDS.toMillis(20)
@@ -121,13 +128,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                                 if (locationResult?.lastLocation != null) {
 
-                                    trackUserLocation(locationResult.lastLocation, activeWalk)
+                                    trackUserLocation(locationResult.lastLocation, viewModel.walkViewModel.activeWalk)
                                 }
                             }
                         }
                         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                        visited_checkpoints_textView.text = viewModel.walkViewModel.activeWalk.id.toString()
                     }
-                })
             }
         }
     }
@@ -142,7 +149,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             mMap.clear()
             finalLength = 0.0
             if(locationCallback != null) fusedLocationClient?.removeLocationUpdates(locationCallback)
-            visited_checkpoints_textView.text = "Visited checkpoints: 0/4"
+            visited_checkpoints_textView.text = "Visited checkpoints: 0/5"
             setUpMap()
         }
 
@@ -243,9 +250,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         Location.distanceBetween(middlePointList[2]!!.latitude, middlePointList[2]!!.longitude, destination.latitude, destination.longitude, fourthDistance)
         var fifthDistance = FloatArray(1)
         Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
-        val totalDistance = firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]
+        estimatedLength = (firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]).toDouble()
 
-        if((difficultyLevel==1 && (totalDistance<500 || totalDistance>1000)||(difficultyLevel==2 && (totalDistance<4500 || totalDistance>5000))||(difficultyLevel==3 && (totalDistance<9500 || totalDistance>10500)))){
+        if((difficultyLevel==1 && (estimatedLength<500 || estimatedLength>1000)||(difficultyLevel==2 && (estimatedLength<4500 || estimatedLength>5000))||(difficultyLevel==3 && (estimatedLength<9500 || estimatedLength>10500)))){
             for(i in middlePointList.indices){
 
                 var middlePointX = Random.nextDouble(xMin, xMax)
@@ -258,46 +265,47 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             arrangeMarkers(middlePointList, initialLocation, destination, xMin, xMax, yMin, yMax)
         }
         else{
-            route_distance_textView.text = "Approximate length of the route: "+totalDistance+"\nDistance to destination: "+fifthDistance[0].toInt()+" meters"
+            route_distance_textView.text = "Approximate length of the route: "+estimatedLength+"\nDistance to destination: "+fifthDistance[0].toInt()+" meters"
         }
     }
 
     fun trackUserLocation(currentLocation: Location, activeWalk: Walk) {
 
+        val dist = getMomentaryDistance(currentLocation)
+        finalLength += dist
+
         if(currentRoutePoints != null) {
             for (i in currentRoutePoints.indices) {
                 if ((currentLocation.latitude < currentRoutePoints[i].latitude+0.0003 && currentLocation.latitude > currentRoutePoints[i].latitude-0.0003) && (currentLocation.longitude < currentRoutePoints[i].longitude+0.0003 && currentLocation.longitude > currentRoutePoints[i].longitude-0.0003)) {
                     if(currentVisitedPoints[i] == false) {
-                        mMap.addMarker(
-                                MarkerOptions().position(currentRoutePoints[i])
-                                        .title("VISITED")
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                        )
-                        currentVisitedPoints[i] = true
-                        val vibrator = applicationContext?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                        if (Build.VERSION.SDK_INT >= 26) {
-                            vibrator.vibrate(VibrationEffect.createOneShot(800, VibrationEffect.DEFAULT_AMPLITUDE))
-                        }
+                        if (i != 0 || (currentVisitedPoints[1] && currentVisitedPoints[2] && currentVisitedPoints[3] && currentVisitedPoints[4])) {
+                            mMap.addMarker(
+                                    MarkerOptions().position(currentRoutePoints[i])
+                                            .title("VISITED")
+                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            )
+                            currentVisitedPoints[i] = true
+                            val vibrator = applicationContext?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                            if (Build.VERSION.SDK_INT >= 26) {
+                                vibrator.vibrate(VibrationEffect.createOneShot(800, VibrationEffect.DEFAULT_AMPLITUDE))
+                            }
 
-                        viewModel.walkViewModel.activeWalk.value!!.visitedCheckpoints[i] = true
+                            viewModel.walkViewModel.activeWalk.visitedCheckpoints[i] = true
+                            viewModel.walkViewModel.activeWalk.length = finalLength
+                            viewModel.walkViewModel.updateWalk(activeWalk)
+                            stateViewModel.addDistanceTraveled(dist)
+                        }
                     }
                 }
             }
         }
-
-        val dist = getMomentaryDistance(currentLocation)
-        finalLength += dist
-        stateViewModel.addDistanceTraveled(dist)
-
-        viewModel.walkViewModel.activeWalk.value!!.length = finalLength
-        viewModel.walkViewModel.updateWalk(activeWalk)
 
         var visitedPts = 0
         for(i in currentVisitedPoints){
             if(i == true) visitedPts++
         }
 
-        visited_checkpoints_textView.text = "Visited checkpoints: "+(visitedPts-1)+"/4"
+        visited_checkpoints_textView.text = "Visited checkpoints: "+visitedPts+"/5"
         route_distance_textView.text = "Traveled distance: "+finalLength.roundToInt()+" meters"
 
 

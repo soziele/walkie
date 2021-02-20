@@ -13,7 +13,9 @@ class WalkRepository(private val walkDao: WalkDao) {
 
     suspend fun update(walk: Walk) = walkDao.update(walk)
 
-    val getActiveWalk: LiveData<Walk> = walkDao.getActive()
+    var getActiveWalk: Walk = walkDao.getActive()
 
     fun completeWalk(walk: Walk, distance: Double) = walkDao.finishWalk(walkId = walk.id, distance = distance)
+
+    fun cancelWalk(walk: Walk) = walkDao.cancelWalk(walkId = walk.id)
 }
