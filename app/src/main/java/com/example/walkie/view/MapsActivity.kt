@@ -48,7 +48,6 @@ import kotlin.random.Random
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
-    private var difficultyLevel: Int = 2
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var locationRequest: LocationRequest
@@ -168,16 +167,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if(Random.nextBoolean()) ySign = -1
         var xShift = 0.0
         var yShift = 0.0
-        when(difficultyLevel) {
-            1-> {
+        when(stateViewModel.state.difficulty.ordinal) {
+            0-> {
                 xShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * xSign
                 yShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * ySign
             }
-            2-> {
+            1-> {
                 xShift = (Random.nextFloat() - 0.5) / 10000 + 0.012 * xSign
                 yShift = (Random.nextFloat() - 0.5) / 10000 + 0.012 * ySign
             }
-            3-> {
+            2-> {
                 xShift = (Random.nextFloat() - 0.5) / 15000 + 0.025 * xSign
                 yShift = (Random.nextFloat() - 0.5) / 15000 + 0.025 * ySign
             }
@@ -252,7 +251,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
         estimatedLength = (firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]).toDouble()
 
-        if((difficultyLevel==1 && (estimatedLength<500 || estimatedLength>1000)||(difficultyLevel==2 && (estimatedLength<4500 || estimatedLength>5000))||(difficultyLevel==3 && (estimatedLength<9500 || estimatedLength>10500)))){
+        if((stateViewModel.state.difficulty.ordinal==0 && (estimatedLength<500 || estimatedLength>1000)||(stateViewModel.state.difficulty.ordinal==1 && (estimatedLength<4500 || estimatedLength>5000))||(stateViewModel.state.difficulty.ordinal==3 && (estimatedLength<9500 || estimatedLength>10500)))){
             for(i in middlePointList.indices){
 
                 var middlePointX = Random.nextDouble(xMin, xMax)
@@ -291,9 +290,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             }
 
                             viewModel.walkViewModel.activeWalk.visitedCheckpoints[i] = true
-                            viewModel.walkViewModel.activeWalk.length = finalLength
-                            viewModel.walkViewModel.updateWalk(activeWalk)
+                            viewModel.walkViewModel.activeWalk.distanceTraveled = finalLength
+                            viewModel.walkViewModel.updateWalk(viewModel.walkViewModel.activeWalk)
                             stateViewModel.addDistanceTraveled(dist)
+                            stateViewModel.addCheckpoint()
                         }
                     }
                 }
@@ -310,8 +310,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         if(currentVisitedPoints.all { visited -> visited }){
-            viewModel.walkViewModel.completeWalk(activeWalk, finalLength)
-            route_distance_textView.text = activeWalk.id.toString()
+            viewModel.walkViewModel.completeWalk(viewModel.walkViewModel.activeWalk, finalLength)
+            route_distance_textView.text = viewModel.walkViewModel.activeWalk.id.toString()
         }
         lastLocation = currentLocation
     }

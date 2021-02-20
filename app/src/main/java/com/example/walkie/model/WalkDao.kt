@@ -11,7 +11,7 @@ interface WalkDao {
     @Delete
     suspend fun delete(walk: Walk)
 
-    @Update
+    @Update(entity = Walk::class)
     suspend fun update(walk: Walk)
 
     @Query("SELECT * FROM walk")

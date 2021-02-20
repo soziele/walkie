@@ -11,7 +11,7 @@ class State(var difficulty: Difficulty, var unlockedCheckpoints: Int, var distan
 
 class StateViewModel(application: Application): AndroidViewModel(application) {
     private val filename = "state.json"
-    private var state: State;
+    var state: State;
 
     init {
         try {
