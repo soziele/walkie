@@ -115,7 +115,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     if(isNew) {
                         runBlocking {
                             viewModel.walkViewModel.addWalk(currentRoutePoints, estimatedLength)
-                            viewModel.walkViewModel.cancelWalk(viewModel.walkViewModel.activeWalk)
+                            if(viewModel.walkViewModel.activeWalk != null)
+                                viewModel.walkViewModel.cancelWalk(viewModel.walkViewModel.activeWalk)
 
                             viewModel.walkViewModel.getActiveWalk()
                         }
