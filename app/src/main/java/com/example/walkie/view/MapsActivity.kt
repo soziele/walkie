@@ -371,6 +371,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if(currentVisitedPoints.all { visited -> visited }){
             viewModel.walkViewModel.completeWalk(viewModel.walkViewModel.activeWalk, finalLength)
+            stateViewModel.addWalkToCombo()
+
             route_distance_textView.text = viewModel.walkViewModel.activeWalk.id.toString()
         }
         lastLocation = currentLocation
