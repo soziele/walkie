@@ -68,13 +68,15 @@ class AppBarFragment : Fragment() {
                 activity?.let {
                         val builder = AlertDialog.Builder(it)
                         builder.setTitle("Pick walks difficulty level")
-                                .setItems(difficultyLevels,
-                                        DialogInterface.OnClickListener { dialog, which ->
-                                            if(which==0) stateViewModel.setDifficulty(Difficulty.Easy)
-                                            else if(which==1) stateViewModel.setDifficulty(Difficulty.Normal)
-                                            else if(which==2) stateViewModel.setDifficulty(Difficulty.Hard)
-                                        })
-                        builder.create()
+                                .setItems(difficultyLevels
+                                ) { _, which ->
+                                    when(which) {
+                                        0 -> stateViewModel.setDifficulty(Difficulty.Easy)
+                                        1 -> stateViewModel.setDifficulty(Difficulty.Normal)
+                                        2 -> stateViewModel.setDifficulty(Difficulty.Hard)
+                                    }
+                                }
+                    builder.create()
                     builder.show()
                     } ?: throw IllegalStateException("Activity cannot be null")
                 true

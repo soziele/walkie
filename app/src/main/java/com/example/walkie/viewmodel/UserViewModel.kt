@@ -11,7 +11,6 @@ import com.example.walkie.model.repositories.WalkRepository
 import kotlinx.coroutines.launch
 
 class UserViewModel(application: Application): AndroidViewModel(application) {
-
     val achievementViewModel: AchievementViewModel = AchievementViewModel(application)
     val walkViewModel: WalkViewModel = WalkViewModel(application)
 }
