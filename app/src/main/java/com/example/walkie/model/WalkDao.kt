@@ -11,7 +11,7 @@ interface WalkDao {
     @Delete
     suspend fun delete(walk: Walk)
 
-    @Update
+    @Update(entity = Walk::class)
     suspend fun update(walk: Walk)
 
     @Query("SELECT * FROM walk")
@@ -25,5 +25,8 @@ interface WalkDao {
 
     @Query("UPDATE walk SET state = 2 WHERE id = :walkId")
     fun cancelWalk(walkId: Int)
+
+    @Query("SELECT * FROM walk WHERE date >= date('now') - 86400000 AND state = 1")
+    fun getTodayCompleted(): Walk?
 
 }

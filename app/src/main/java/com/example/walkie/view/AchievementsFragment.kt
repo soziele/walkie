@@ -10,8 +10,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.walkie.R
+import com.example.walkie.model.Achievement
 import com.example.walkie.viewmodel.AchievementViewModel
 import com.example.walkie.viewmodel.AchievementsListAdapter
+import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
 import kotlinx.android.synthetic.main.fragment_achievements.*
 
@@ -33,6 +35,7 @@ class AchievementsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var myLayoutManager: LinearLayoutManager
     private lateinit var viewModel: UserViewModel
+    private lateinit var stateViewModel: StateViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +51,10 @@ class AchievementsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+
+        stateViewModel = ViewModelProvider(requireActivity()).get(StateViewModel::class.java)
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-        myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, requireContext())
+        myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, stateViewModel, requireContext())
         myLayoutManager= LinearLayoutManager(context)
 
         viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t->
@@ -61,6 +66,7 @@ class AchievementsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
 
         recyclerView = achievements_list.apply {
             this.layoutManager = myLayoutManager

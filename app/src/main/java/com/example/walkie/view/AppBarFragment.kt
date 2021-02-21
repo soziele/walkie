@@ -11,12 +11,15 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.menu.MenuView
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import com.example.walkie.R
+import com.example.walkie.model.enums.Difficulty
+import com.example.walkie.viewmodel.StateViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_app_bar.*
 import java.time.Duration
@@ -36,6 +39,7 @@ class AppBarFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private lateinit var stateViewModel: StateViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +53,7 @@ class AppBarFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        stateViewModel = ViewModelProvider(this).get(StateViewModel::class.java)
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_app_bar, container, false)
     }
@@ -59,14 +64,15 @@ class AppBarFragment : Fragment() {
         topAppBar.setOnMenuItemClickListener {item->
         when(item.itemId){
             R.id.option_1->{
-                val difficultyLevels = arrayOf("Beginner (Walk length: xkm to xkm)", "Intermediate (Walk length: xkm to xkm)", "Tryhard (Walk length: xkm to xkm)")
+                val difficultyLevels = arrayOf("Beginner", "Intermediate", "Tryhard")
                 activity?.let {
                         val builder = AlertDialog.Builder(it)
                         builder.setTitle("Pick walks difficulty level")
                                 .setItems(difficultyLevels,
                                         DialogInterface.OnClickListener { dialog, which ->
-                                            // The 'which' argument contains the index position
-                                            // of the selected item
+                                            if(which==0) stateViewModel.setDifficulty(Difficulty.Easy)
+                                            else if(which==1) stateViewModel.setDifficulty(Difficulty.Normal)
+                                            else if(which==2) stateViewModel.setDifficulty(Difficulty.Hard)
                                         })
                         builder.create()
                     builder.show()

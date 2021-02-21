@@ -19,7 +19,7 @@ import com.example.walkie.model.Achievement
 import kotlin.coroutines.coroutineContext
 
 
-class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var viewModel:UserViewModel, var context: Context): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
+class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var viewModel:UserViewModel, var stateViewModel: StateViewModel, var context: Context): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
 
     inner class AchievementsHolder(view:View):RecyclerView.ViewHolder(view)
 
@@ -32,6 +32,11 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
 
     override fun onBindViewHolder(holder: AchievementsHolder, position: Int) {
 
+        val walksLevels = arrayOf(1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+        val kilometersLevels = arrayOf(5, 10, 20, 30, 50, 75, 100, 125, 150)
+        val daysLevels = arrayOf(2, 4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 50)
+        val checkpointsLevels = arrayOf(8, 16, 24, 32, 40, 56, 75, 100, 128, 150, 200)
+
         val name = holder.itemView.findViewById<TextView>(R.id.achievement_name)
         val description = holder.itemView.findViewById<TextView>(R.id.achievement_description)
         val icon = holder.itemView.findViewById<ImageView>(R.id.achievement_icon)
@@ -40,7 +45,8 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
         val progressBar = holder.itemView.findViewById<ProgressBar>(R.id.achievement_progressBar)
 
         name.text = achievements.value!![position].title
-        description.text = achievements.value!![position].description
+        if(achievements.value!![position].stage !=0) description.text = achievements.value!![position].description+"\nLevel: "+achievements.value!![position].stage
+        else description.text = achievements.value!![position].description+ "\nNot unlocked yet."
         val iconResource = context.resources.getIdentifier(achievements.value!![position].iconPath,"drawable",context.packageName)
         icon.setImageResource(iconResource)
 
@@ -61,9 +67,10 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
             0->{
                 progressBar.max = achievements.value!![position].stage * 10 + 5
                 progressBar.progress = 3
+
             }
             1->{
-                progressBar.max = achievements.value!![position].stage * 4 + 1
+                progressBar.max = checkMax(1)
                 progressBar.progress = 1
             }
             2->{
@@ -77,6 +84,11 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
         }
         progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
 
+    }
+
+    fun checkMax(id: Int): Int{
+
+        return 0
     }
 
 

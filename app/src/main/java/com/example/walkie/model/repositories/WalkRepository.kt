@@ -1,5 +1,6 @@
 package com.example.walkie.model.repositories
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.example.walkie.model.Walk
 import com.example.walkie.model.WalkDao
@@ -18,4 +19,9 @@ class WalkRepository(private val walkDao: WalkDao) {
     fun completeWalk(walk: Walk, distance: Double) = walkDao.finishWalk(walkId = walk.id, distance = distance)
 
     fun cancelWalk(walk: Walk) = walkDao.cancelWalk(walkId = walk.id)
+
+    fun hasBeenCompletedToday(): Boolean {
+        walkDao.getTodayCompleted() ?: return false
+        return true
+    }
 }
