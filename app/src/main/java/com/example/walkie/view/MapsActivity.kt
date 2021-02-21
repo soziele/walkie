@@ -10,6 +10,7 @@ import android.icu.util.TimeUnit
 import android.location.Location
 import android.location.LocationListener
 import android.os.*
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -20,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.walkie.R
 import com.example.walkie.model.Walk
+import com.example.walkie.model.enums.Difficulty
 import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
 import com.google.android.gms.common.data.DataBufferObserver
@@ -31,6 +33,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.gson.Gson
 import com.maps.route.extensions.drawRouteOnMap
 import com.maps.route.model.Route
 import com.maps.route.model.TravelMode
@@ -59,10 +62,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var viewModel: UserViewModel
     private var estimatedLength: Double = 0.0
     private var finalLength: Double = 0.0
-
-    //test
     private lateinit var stateViewModel: StateViewModel
-    //test
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,10 +73,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         viewModel= ViewModelProvider(this).get(UserViewModel::class.java)
-
-        //test
         stateViewModel = ViewModelProvider(this).get(StateViewModel::class.java)
-        //test
     }
 
     /**
@@ -167,7 +164,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if(Random.nextBoolean()) ySign = -1
         var xShift = 0.0
         var yShift = 0.0
-        when(stateViewModel.state.difficulty.ordinal) {
+        when(stateViewModel.getState().difficulty.ordinal) {
             0-> {
                 xShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * xSign
                 yShift = (Random.nextFloat() - 0.5) / 2500 + 0.002 * ySign
@@ -251,7 +248,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         Location.distanceBetween(destination.latitude, destination.longitude, initialLocation.latitude, initialLocation.longitude, fifthDistance)
         estimatedLength = (firstDistance[0]+secondDistance[0]+thirdDistance[0]+fourthDistance[0]+fifthDistance[0]).toDouble()
 
-        if((stateViewModel.state.difficulty.ordinal==0 && (estimatedLength<500 || estimatedLength>1000)||(stateViewModel.state.difficulty.ordinal==1 && (estimatedLength<4500 || estimatedLength>5000))||(stateViewModel.state.difficulty.ordinal==3 && (estimatedLength<9500 || estimatedLength>10500)))){
+        if((stateViewModel.getState().difficulty.ordinal==0 && (estimatedLength<500 || estimatedLength>1000)||(stateViewModel.getState().difficulty.ordinal==1 && (estimatedLength<4500 || estimatedLength>5000))||(stateViewModel.getState().difficulty.ordinal==3 && (estimatedLength<9500 || estimatedLength>10500)))){
             for(i in middlePointList.indices){
 
                 var middlePointX = Random.nextDouble(xMin, xMax)

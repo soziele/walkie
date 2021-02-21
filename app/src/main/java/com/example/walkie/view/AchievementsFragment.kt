@@ -1,6 +1,7 @@
 package com.example.walkie.view
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.walkie.R
 import com.example.walkie.model.Achievement
+import com.example.walkie.model.enums.Difficulty
 import com.example.walkie.viewmodel.AchievementViewModel
 import com.example.walkie.viewmodel.AchievementsListAdapter
 import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_achievements.*
 
 // TODO: Rename parameter arguments, choose names that match
@@ -57,7 +60,11 @@ class AchievementsFragment : Fragment() {
         myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, stateViewModel, requireContext())
         myLayoutManager= LinearLayoutManager(context)
 
-        viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t->
+        viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t ->
+            if(t.isEmpty()) {
+                viewModel.achievementViewModel.seedDatabase()
+            }
+
             myadapter.notifyDataSetChanged()
         })
 
@@ -66,7 +73,7 @@ class AchievementsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        stateViewModel = ViewModelProvider(this).get(StateViewModel::class.java)
 
         recyclerView = achievements_list.apply {
             this.layoutManager = myLayoutManager
