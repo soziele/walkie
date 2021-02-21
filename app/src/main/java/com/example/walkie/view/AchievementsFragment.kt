@@ -60,7 +60,11 @@ class AchievementsFragment : Fragment() {
         myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, stateViewModel, requireContext())
         myLayoutManager= LinearLayoutManager(context)
 
-        viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t->
+        viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t ->
+            if(t.isEmpty()) {
+                viewModel.achievementViewModel.seedDatabase()
+            }
+
             myadapter.notifyDataSetChanged()
         })
 
