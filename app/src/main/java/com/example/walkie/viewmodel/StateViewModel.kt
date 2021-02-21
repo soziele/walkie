@@ -44,6 +44,14 @@ class StateViewModel(application: Application): AndroidViewModel(application) {
         writeStateToFile()
     }
 
+    fun addDistanceAndCheckpoint(distance: Double){
+        Log.i("STATE UPDATE", "State updated from ${state.unlockedCheckpoints} to ${state.unlockedCheckpoints+1}")
+        state.unlockedCheckpoints++
+        Log.i("STATE UPDATE", "State updated from ${state.distanceTraveled} to ${state.distanceTraveled + distance}")
+        state.distanceTraveled += distance
+        writeStateToFile()
+    }
+
     fun addCheckpoint() {
         Log.i("STATE UPDATE", "State updated from ${state.unlockedCheckpoints} to ${state.unlockedCheckpoints+1}")
         state.unlockedCheckpoints++
