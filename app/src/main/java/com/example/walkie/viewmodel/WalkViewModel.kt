@@ -74,5 +74,7 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-
+    fun hasCompletedWalkToday(): Boolean {
+        return walkRepository.hasBeenCompletedToday()
+    }
 }
