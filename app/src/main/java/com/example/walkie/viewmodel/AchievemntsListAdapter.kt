@@ -1,7 +1,10 @@
 package com.example.walkie.viewmodel
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
+import android.content.DialogInterface
 import android.content.res.Resources
 import android.content.res.loader.ResourcesProvider
 import android.graphics.BitmapFactory
@@ -14,14 +17,21 @@ import com.example.walkie.R
 import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.example.walkie.model.Achievement
+import com.example.walkie.model.enums.WalkState
 import kotlin.coroutines.coroutineContext
 
 
-class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var viewModel:UserViewModel, var stateViewModel: StateViewModel, var context: Context): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
+class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var viewModel:UserViewModel, var stateViewModel: StateViewModel, var context: Context, var activity: Activity, var viewLifecycleOwner: LifecycleOwner): RecyclerView.Adapter<AchievementsListAdapter.AchievementsHolder>() {
 
     inner class AchievementsHolder(view:View):RecyclerView.ViewHolder(view)
+    val walksLevels = arrayOf(1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500)
+    val kilometersLevels = arrayOf(5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300)
+    val daysLevels = arrayOf(2, 4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100)
+    val checkpointsLevels = arrayOf(8, 16, 24, 32, 40, 56, 75, 100, 128, 150, 200, 250, 300)
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):AchievementsHolder{
@@ -32,11 +42,6 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
 
     override fun onBindViewHolder(holder: AchievementsHolder, position: Int) {
 
-        val walksLevels = arrayOf(1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100)
-        val kilometersLevels = arrayOf(5, 10, 20, 30, 50, 75, 100, 125, 150)
-        val daysLevels = arrayOf(2, 4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 50)
-        val checkpointsLevels = arrayOf(8, 16, 24, 32, 40, 56, 75, 100, 128, 150, 200)
-
         val name = holder.itemView.findViewById<TextView>(R.id.achievement_name)
         val description = holder.itemView.findViewById<TextView>(R.id.achievement_description)
         val icon = holder.itemView.findViewById<ImageView>(R.id.achievement_icon)
@@ -44,9 +49,11 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
         val progress = holder.itemView.findViewById<TextView>(R.id.achievement_progress)
         val progressBar = holder.itemView.findViewById<ProgressBar>(R.id.achievement_progressBar)
 
+        checkAchievements(position, progressBar, progress, description)
+
         name.text = achievements.value!![position].title
-        if(achievements.value!![position].stage !=0) description.text = achievements.value!![position].description+"\nLevel: "+achievements.value!![position].stage
-        else description.text = achievements.value!![position].description+ "\nNot unlocked yet."
+        if(achievements.value!![position].stage == 0) description.text = achievements.value!![position].description+ "\nNot unlocked yet."
+        else description.text = achievements.value!![position].description+"\nLevel: "+achievements.value!![position].stage
         val iconResource = context.resources.getIdentifier(achievements.value!![position].iconPath,"drawable",context.packageName)
         icon.setImageResource(iconResource)
 
@@ -58,38 +65,116 @@ class AchievementsListAdapter (var achievements:LiveData<List<Achievement>>, var
             progress.setBackgroundColor(Color.parseColor("#ed8e7c"))
         }
 
-
-        checkAchievements(position, progressBar, progress)
     }
 
-    fun checkAchievements(position: Int, progressBar: ProgressBar, progressText: TextView){
+    fun checkAchievements(position: Int, progressBar: ProgressBar, progressText: TextView, description: TextView){
         when(position){
             0->{
-                progressBar.max = achievements.value!![position].stage * 10 + 5
-                progressBar.progress = 3
+                var tmpStage = 0
+                var progress = getCompletedWalksNumber()
 
+                progressBar.max = walksLevels[0]
+                for(i in walksLevels.indices){
+                    if(progress > walksLevels[i]){
+                        progressBar.max = walksLevels[i+1]
+                        tmpStage++
+                    }
+                }
+                while(tmpStage > achievements.value!![0].stage){
+                    viewModel.achievementViewModel.transitionToNextStage(achievements.value!![0])
+                    congratulationsDialog(achievements.value!![0])
+                }
+                progressBar.progress = progress
+                progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
             }
             1->{
-                progressBar.max = checkMax(1)
-                progressBar.progress = 1
+                var tmpStage = 0
+                for(i in kilometersLevels.indices){
+
+                    progressBar.max = kilometersLevels[0]
+                    if(stateViewModel.getState().distanceTraveled/1000 > kilometersLevels[i]){
+                        progressBar.max = kilometersLevels[i+1]
+                        tmpStage++
+                    }
+                }
+                while(tmpStage > achievements.value!![1].stage){
+                    viewModel.achievementViewModel.transitionToNextStage(achievements.value!![1])
+                    congratulationsDialog(achievements.value!![1])
+                }
+                progressBar.progress = (stateViewModel.getState().distanceTraveled/1000).toInt()
+                progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()+" km"
             }
             2->{
-                progressBar.max = achievements.value!![position].stage * 20 + 5
-                progressBar.progress = 6
+                var tmpStage = 0
+                var progress = getDaysInRowNumber()
+
+                progressBar.max = daysLevels[0]
+                for(i in daysLevels.indices){
+                    if(progress > daysLevels[i]){
+                        progressBar.max = daysLevels[i+1]
+                        tmpStage++
+                    }
+                }
+                while(tmpStage > achievements.value!![2].stage){
+                    viewModel.achievementViewModel.transitionToNextStage(achievements.value!![2])
+                    congratulationsDialog(achievements.value!![2])
+                }
+                progressBar.progress = progress
+                progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
             }
             3->{
-                progressBar.max = achievements.value!![position].stage * 2 + 5
-                progressBar.progress = 0
+                var tmpStage = 0
+                progressBar.max = checkpointsLevels[0]
+                for(i in checkpointsLevels.indices) {
+                    if (stateViewModel.getState().unlockedCheckpoints > checkpointsLevels[i]){
+                        progressBar.max = checkpointsLevels[i+1]
+                        tmpStage++
+                    }
+                }
+                while(tmpStage > achievements.value!![3].stage){
+                    viewModel.achievementViewModel.transitionToNextStage(achievements.value!![3])
+                    congratulationsDialog(achievements.value!![3])
+
+                }
+                progressBar.progress = stateViewModel.getState().unlockedCheckpoints
+                progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
             }
         }
-        progressText.text = progressBar.progress.toString()+"/"+progressBar.max.toString()
 
     }
 
-    fun checkMax(id: Int): Int{
+    private fun congratulationsDialog(achievement: Achievement){
 
-        return 0
+        val alertDialog: AlertDialog? = activity?.let {
+            val builder = AlertDialog.Builder(context)
+            builder.apply {
+                setTitle("Congratulations")
+                setIcon(R.drawable.hoorray_icon)
+                setMessage("You've unlocked level "+achievement.stage+" of "+achievement.title+" achievement")
+                setPositiveButton("Got it, thanks!",
+                        DialogInterface.OnClickListener { dialog, id ->
+                            // User clicked OK button
+                        })
+            }
+            builder.create()
+            builder.show()
+        }
     }
+
+    private fun getCompletedWalksNumber():Int{
+        var completedWalks = 0
+        viewModel.walkViewModel.walks.observe(viewLifecycleOwner, Observer { walks->
+            for(walk in walks){
+                if(walk.state == WalkState.Completed) completedWalks++
+            }
+        })
+        return completedWalks
+    }
+
+    private fun getDaysInRowNumber():Int{
+        return stateViewModel.getState().completedWalkCombo
+    }
+
 
 
     override fun getItemCount(): Int {

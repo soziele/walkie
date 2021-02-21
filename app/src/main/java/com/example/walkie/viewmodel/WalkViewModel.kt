@@ -15,18 +15,11 @@ import java.time.LocalDateTime
 import java.util.*
 
 class WalkViewModel(application: Application): AndroidViewModel(application) {
-    private var walkRepository: WalkRepository
+    private var walkRepository: WalkRepository = WalkRepository(WalkieDatabase.getDatabase(application).walkDao())
 
-    var walks: LiveData<List<Walk>>
+    var walks: LiveData<List<Walk>> = walkRepository.getAll
 
-    var activeWalk: Walk
-    init{
-
-            walkRepository = WalkRepository(WalkieDatabase.getDatabase(application).walkDao())
-            walks = walkRepository.getAll
-
-        activeWalk = walkRepository.getActiveWalk
-    }
+    var activeWalk: Walk = walkRepository.getActiveWalk
 
     fun addWalk(checkpoints: Array<LatLng>, length: Double)
     {
@@ -52,7 +45,6 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
             count2.await()
             activeWalk = walkRepository.getActiveWalk
         }
-
     }
 
     fun updateWalk(walk: Walk){

@@ -23,6 +23,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.walkie.R
 import com.example.walkie.model.Walk
 import com.example.walkie.model.enums.Difficulty
+import com.example.walkie.model.enums.WalkState
 import com.example.walkie.viewmodel.StateViewModel
 import com.example.walkie.viewmodel.UserViewModel
 import com.google.android.gms.common.data.DataBufferObserver
@@ -149,7 +150,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mMap = googleMap
         mMap.setOnMarkerClickListener(this)
 
-        if (viewModel.walkViewModel.hasCompletedWalkToday()) {
+        /*if (viewModel.walkViewModel.hasCompletedWalkToday()) {
             this.let {
                 val builder = AlertDialog.Builder(it)
                 builder.setTitle("You have already finished one walk today.")
@@ -161,7 +162,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 builder.create()
                 builder.show()
             }
-        } else if (viewModel.walkViewModel.activeWalk != null) {
+        } else */if (viewModel.walkViewModel.activeWalk != null && viewModel.walkViewModel.activeWalk.state == WalkState.Active) {
             this.let {
                 val builder = AlertDialog.Builder(it)
                 builder.setTitle("You have an unfinished walk!")
@@ -325,7 +326,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             arrangeMarkers(middlePointList, initialLocation, destination, xMin, xMax, yMin, yMax)
         }
         else{
-            route_distance_textView.text = "Approximate length of the route: "+estimatedLength.toInt()
+            route_distance_textView.text = "Approximate length of the route: "+estimatedLength.toInt()+" meters"
         }
     }
 
@@ -373,8 +374,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             viewModel.walkViewModel.completeWalk(viewModel.walkViewModel.activeWalk, finalLength)
             stateViewModel.addWalkToCombo()
 
-            route_distance_textView.text = viewModel.walkViewModel.activeWalk.id.toString()
+            val alertDialog: android.app.AlertDialog? = this.let {
+                val builder = android.app.AlertDialog.Builder(applicationContext)
+                builder.apply {
+                    setTitle("Congratulations")
+                    setIcon(R.drawable.finish_icon)
+                    setMessage("You've completed a "+finalLength+" meters long walk!")
+                    setPositiveButton("Got it, thanks!",
+                            DialogInterface.OnClickListener { dialog, id ->
+                                onBackPressed()
+                            })
+                }
+                builder.create()
+                builder.show()
+            }
         }
+
         lastLocation = currentLocation
     }
 
@@ -436,6 +451,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         estimatedLength+=smallestDistance
         return nearestNeighborId
     }
+
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1

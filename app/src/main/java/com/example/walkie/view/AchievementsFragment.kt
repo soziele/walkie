@@ -57,7 +57,7 @@ class AchievementsFragment : Fragment() {
 
         stateViewModel = ViewModelProvider(requireActivity()).get(StateViewModel::class.java)
         viewModel = ViewModelProvider(requireActivity()).get(UserViewModel::class.java)
-        myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, stateViewModel, requireContext())
+        myadapter = AchievementsListAdapter(viewModel.achievementViewModel.achievements, viewModel, stateViewModel, requireContext(), requireActivity(), viewLifecycleOwner)
         myLayoutManager= LinearLayoutManager(context)
 
         viewModel.achievementViewModel.achievements.observe(viewLifecycleOwner, Observer { t ->
