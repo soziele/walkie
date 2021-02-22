@@ -20,6 +20,7 @@ import androidx.navigation.fragment.NavHostFragment.findNavController
 import com.example.walkie.R
 import com.example.walkie.model.enums.Difficulty
 import com.example.walkie.viewmodel.StateViewModel
+import com.example.walkie.viewmodel.UserViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_app_bar.*
 import java.time.Duration
@@ -40,6 +41,7 @@ class AppBarFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private lateinit var stateViewModel: StateViewModel
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +56,7 @@ class AppBarFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         stateViewModel = ViewModelProvider(this).get(StateViewModel::class.java)
+        userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_app_bar, container, false)
     }
@@ -82,6 +85,21 @@ class AppBarFragment : Fragment() {
                 true
             }
             R.id.option_2->{
+                activity?.let {
+                    val builder = AlertDialog.Builder(it)
+                    builder.setTitle("Are you sure you want to reset Walkie?")
+                    builder.setMessage("All progress will be lost!")
+                            .setPositiveButton("Yes",
+                                    DialogInterface.OnClickListener { dialog, id ->
+                                        userViewModel.walkViewModel.deleteAllWalks()
+                                        userViewModel.achievementViewModel.deleteAllAchievements()
+                                    })
+                            .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialog, id ->
+
+                            })
+                    builder.create()
+                    builder.show()
+                } ?: throw IllegalStateException("Activity cannot be null")
                 true
             }
             R.id.option_3->{

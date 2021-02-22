@@ -1,5 +1,6 @@
 package com.example.walkie.model
 
+import android.os.FileObserver.DELETE
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
@@ -16,4 +17,7 @@ interface AchievementDao {
 
     @Update(entity = Achievement::class)
     fun update(achievement: Achievement)
+
+    @Query("DELETE FROM achievement")
+    fun deleteAll()
 }

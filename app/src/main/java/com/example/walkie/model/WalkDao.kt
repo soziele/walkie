@@ -29,4 +29,7 @@ interface WalkDao {
     @Query("SELECT * FROM walk WHERE date >= date('now') - 86400000 AND state = 1")
     fun getTodayCompleted(): Walk?
 
+    @Query("DELETE FROM walk")
+    fun deteleAll()
+
 }

@@ -32,6 +32,10 @@ class WalkViewModel(application: Application): AndroidViewModel(application) {
 
     }
 
+    fun deleteAllWalks(){
+        walkRepository.deleteAll()
+    }
+
     fun getAllWalks(){
         walks = walkRepository.getAll
     }

@@ -15,4 +15,6 @@ class AchievementRepository(private val achievementDao: AchievementDao) {
         achievement.stage += 1
         achievementDao.update(achievement)
     }
+
+    fun deleteAll() = achievementDao.deleteAll()
 }

@@ -21,6 +21,10 @@ class AchievementViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    fun deleteAllAchievements(){
+        achievementRepository.deleteAll()
+    }
+
     private fun addAchievement(achievement: Achievement){
         viewModelScope.launch {
             achievementRepository.add(achievement)

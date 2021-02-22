@@ -24,4 +24,6 @@ class WalkRepository(private val walkDao: WalkDao) {
         walkDao.getTodayCompleted() ?: return false
         return true
     }
+
+    fun deleteAll() = walkDao.deteleAll()
 }
