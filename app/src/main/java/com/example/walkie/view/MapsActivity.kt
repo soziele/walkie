@@ -49,7 +49,7 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class   MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -151,7 +151,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mMap = googleMap
         mMap.setOnMarkerClickListener(this)
 
-        /*if (viewModel.walkViewModel.hasCompletedWalkToday()) {
+        if (viewModel.walkViewModel.hasCompletedWalkToday()) {
             this.let {
                 val builder = AlertDialog.Builder(it)
                 builder.setTitle("You have already finished one walk today.")
@@ -163,7 +163,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 builder.create()
                 builder.show()
             }
-        } else */if (viewModel.walkViewModel.activeWalk != null && viewModel.walkViewModel.activeWalk.state == WalkState.Active) {
+        } else if (viewModel.walkViewModel.activeWalk != null && viewModel.walkViewModel.activeWalk.state == WalkState.Active) {
             this.let {
                 val builder = AlertDialog.Builder(it)
                 builder.setTitle("You have an unfinished walk!")
@@ -376,11 +376,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             stateViewModel.addWalkToCombo()
 
             val alertDialog: android.app.AlertDialog? = this.let {
-                val builder = android.app.AlertDialog.Builder(applicationContext)
+                val builder = android.app.AlertDialog.Builder(this)
                 builder.apply {
                     setTitle("Congratulations")
                     setIcon(R.drawable.finish_icon)
-                    setMessage("You've completed a "+finalLength+" meters long walk!")
+                    setMessage("You've completed a "+finalLength.toInt()+" meters long walk!")
                     setPositiveButton("Got it, thanks!",
                             DialogInterface.OnClickListener { dialog, id ->
                                 onBackPressed()
