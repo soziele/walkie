@@ -20,17 +20,21 @@ class State(
 class StateViewModel(application: Application): AndroidViewModel(application) {
     private val filename = "state.json"
     companion object {
-        lateinit var state: State;
+        lateinit var state: State
         fun isStateInitialized() = ::state.isInitialized
     }
 
     init {
+        if(!isStateInitialized()) {
+            initialize()
+        }
+    }
+
+    private fun initialize() {
         try {
-            if(!isStateInitialized()) {
-                // if file exists, load it
-                application.openFileInput(filename).bufferedReader().use { data ->
-                    state = Gson().fromJson<State>(data, State::class.java)
-                }
+            // if file exists, load it
+            getApplication<Application>().openFileInput(filename).bufferedReader().use { data ->
+                state = Gson().fromJson<State>(data, State::class.java)
             }
         }
         catch(e: Exception) {
@@ -85,4 +89,9 @@ class StateViewModel(application: Application): AndroidViewModel(application) {
     }
 
     fun getState(): State = state
+
+    fun cleanState() {
+        getApplication<Application>().deleteFile(filename)
+        initialize()
+    }
 }
