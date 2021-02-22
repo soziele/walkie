@@ -93,6 +93,7 @@ class AppBarFragment : Fragment() {
                                     DialogInterface.OnClickListener { dialog, id ->
                                         userViewModel.walkViewModel.deleteAllWalks()
                                         userViewModel.achievementViewModel.deleteAllAchievements()
+                                        stateViewModel.cleanState()
                                     })
                             .setNegativeButton("Cancel", DialogInterface.OnClickListener { dialog, id ->
 
